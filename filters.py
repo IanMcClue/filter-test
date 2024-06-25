@@ -76,4 +76,7 @@ def add_vignette(image, amount=0.5, midpoint=0.5):
     # Apply the vignette effect to each channel
     vignette_image = np.dstack([image[:, :, i] * vignette for i in range(image.shape[2])])
 
+    # Normalize the image to [0, 1] range
+    vignette_image = vignette_image / 255.0  # Assuming image was clipped to [0, 255] before
+
     return vignette_image
