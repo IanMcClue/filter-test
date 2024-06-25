@@ -55,7 +55,7 @@ def apply_vintage_effect(image):
     # Add noise
     noise = np.random.normal(0, 10, blurred_image.shape)
     noisy_image = blurred_image + noise
-    noisy_image = cv2.clipData(noisy_image, 0, 255).astype(np.uint8)
+    noisy_image = np.clip(noisy_image, 0, 255).astype(np.uint8)
 
     # Add vignette effect (optional)
     vignette_image = add_vignette(noisy_image, 0.5, 0.5)
@@ -67,7 +67,7 @@ def add_vignette(image, amount=0.5, midpoint=0.5):
     x, y = np.ogrid[:h, :w]
 
     # Create a distance map
-    dist_map = np.sqrt((x - w / 2) ** 2 + (y - h / 2) ** 2)
+    dist_map = np.sqrt((x - h / 2) ** 2 + (y - w / 2) ** 2)
 
     # Calculate the vignette effect
     max_dist = np.max(dist_map)
