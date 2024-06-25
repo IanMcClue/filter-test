@@ -1,14 +1,20 @@
 import cv2
 import numpy as np
 
+# Precomputed LUTs
+lut_kodak_portra = None
+lut_fujifilm_velvia = None
+
 def apply_grayscale(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY, dst=image)
+    return image
 
 def apply_sepia(image):
     kernel = np.array([[0.272, 0.534, 0.131],
                        [0.349, 0.686, 0.168],
                        [0.393, 0.769, 0.189]])
-    return cv2.transform(image, kernel)
+    sepia_image = cv2.transform(image, kernel)
+    return sepia_image
 
 def apply_blur(image, ksize=(15, 15)):
     return cv2.GaussianBlur(image, ksize, 0)
@@ -17,16 +23,22 @@ def apply_edge_detection(image):
     return cv2.Canny(image, 100, 200)
 
 def apply_kodak_portra(image):
-    lut_r = np.array([i for i in range(256)], dtype=np.uint8)
-    lut_g = np.array([min(255, i * 0.95 + 12) for i in range(256)], dtype=np.uint8)
-    lut_b = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
-    return apply_lut(image, lut_r, lut_g, lut_b)
+    global lut_kodak_portra
+    if lut_kodak_portra is None:
+        lut_r = np.array([i for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.95 + 12) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+        lut_kodak_portra = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_kodak_portra)
 
 def apply_fujifilm_velvia(image):
-    lut_r = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
-    lut_g = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
-    lut_b = np.array([i for i in range(256)], dtype=np.uint8)
-    return apply_lut(image, lut_r, lut_g, lut_b)
+    global lut_fujifilm_velvia
+    if lut_fujifilm_velvia is None:
+        lut_r = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([i for i in range(256)], dtype=np.uint8)
+        lut_fujifilm_velvia = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_fujifilm_velvia)
 
 def create_warm_lut():
     lut_r = np.array([min(255, i + 20) for i in range(256)], dtype=np.uint8)
