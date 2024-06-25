@@ -9,8 +9,7 @@ lut_kodak_ektar_100 = None
 lut_fujifilm_provia_100f = None
 
 def apply_grayscale(image):
-    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY, dst=image)
-    return image
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 def apply_sepia(image):
     kernel = np.array([[0.272, 0.534, 0.131],
@@ -48,7 +47,7 @@ def apply_cinestill_800t(image):
     if lut_cinestill_800t is None:
         lut_r = np.array([min(255, i * 0.9 + 20) for i in range(256)], dtype=np.uint8)
         lut_g = np.array([min(255, i * 0.85 + 15) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([min(255, i * 1.1 - 10) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 1.1 - 10)) for i in range(256)], dtype=np.uint8)
         lut_cinestill_800t = lut_r, lut_g, lut_b
     return apply_lut(image, *lut_cinestill_800t)
 
@@ -57,7 +56,7 @@ def apply_kodak_ektar_100(image):
     if lut_kodak_ektar_100 is None:
         lut_r = np.array([min(255, i * 1.1) for i in range(256)], dtype=np.uint8)
         lut_g = np.array([min(255, i * 0.95) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 0.9 + 10)) for i in range(256)], dtype=np.uint8)
         lut_kodak_ektar_100 = lut_r, lut_g, lut_b
     return apply_lut(image, *lut_kodak_ektar_100)
 
@@ -66,7 +65,7 @@ def apply_fujifilm_provia_100f(image):
     if lut_fujifilm_provia_100f is None:
         lut_r = np.array([min(255, i * 1.05) for i in range(256)], dtype=np.uint8)
         lut_g = np.array([min(255, i * 0.95 + 10) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([min(255, i * 1.1 - 20) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 1.1 - 20)) for i in range(256)], dtype=np.uint8)
         lut_fujifilm_provia_100f = lut_r, lut_g, lut_b
     return apply_lut(image, *lut_fujifilm_provia_100f)
 
