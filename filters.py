@@ -90,7 +90,8 @@ def add_grain(image, intensity=0.2):
 def add_light_leak(image, leak_intensity=0.5, num_leaks=3):
     h, w = image.shape[:2]
     
-    light_leak_image = image.astype(np.float32) / 255.0  # Normalize the image for blending
+    # Normalize the image for blending
+    light_leak_image = image.astype(np.float32) / 255.0  
     
     for _ in range(num_leaks):
         # Random position and radius for the light leak
@@ -106,16 +107,17 @@ def add_light_leak(image, leak_intensity=0.5, num_leaks=3):
                             (yy * (h / (2 * leak_radius)) + leak_center_y / h - 0.5) ** 2))
         
         # Randomize the color of the light leak (red to orange)
-        leak_color = np.array([1.0, np.random.uniform(0.2, 0.6), 0.0])  # Red to orange gradient
+        leak_color = np.array([1.0, np.random.uniform(0.2, 0.6), 0.0], dtype=np.float32)  # Red to orange gradient
         light_leak = leak_color * gradient[..., np.newaxis]
         
         # Blend the light leak with the image
-        light_leak_image = cv2.addWeighted(light_leak_image, 1, light_leak, leak_intensity, 0)
+        light_leak_image = cv2.addWeighted(light_leak_image, 1.0, light_leak, leak_intensity, 0)
     
     light_leak_image = np.clip(light_leak_image, 0, 1)  # Ensure the image values are within the range [0, 1]
     light_leak_image = (light_leak_image * 255).astype(np.uint8)  # Convert back to uint8
     
     return light_leak_image
+
 
 def add_vignette(image, strength=0.5):
     h, w = image.shape[:2]
