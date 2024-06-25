@@ -82,8 +82,9 @@ def apply_custom_filter(image):
     return apply_lut(image, lut_r, lut_g, lut_b)
 
 def add_grain(image, intensity=0.2):
-    noise = np.random.normal(0, 255 * intensity, image.shape).astype(np.uint8)
-    noisy_image = cv2.addWeighted(image, 1 - intensity, noise, intensity, 0)
+    noise = np.random.normal(0, 255 * intensity, image.shape).astype(np.float32)
+    image_float = image.astype(np.float32)
+    noisy_image = cv2.addWeighted(image_float, 1 - intensity, noise, intensity, 0).astype(np.uint8)
     return noisy_image
 
 def add_light_leak(image, leak_intensity=0.5, num_leaks=3):
