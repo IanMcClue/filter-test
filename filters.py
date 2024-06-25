@@ -111,7 +111,8 @@ def add_light_leak(image, leak_intensity=0.5, num_leaks=3):
         light_leak = leak_color * gradient[..., np.newaxis]
         
         # Blend the light leak with the image
-        light_leak_image = cv2.addWeighted(light_leak_image, 1.0, light_leak, leak_intensity, 0)
+        light_leak_image = cv2.addWeighted(light_leak_image, 1.0, light_leak, leak_intensity, 0, dtype=cv2.CV_32F)
+
     
     light_leak_image = np.clip(light_leak_image, 0, 1)  # Ensure the image values are within the range [0, 1]
     light_leak_image = (light_leak_image * 255).astype(np.uint8)  # Convert back to uint8
