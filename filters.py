@@ -17,26 +17,30 @@ def apply_edge_detection(image):
     return cv2.Canny(image, 100, 200)
 
 def apply_kodak_portra(image):
-    lut = np.array([[i * 0.95 + 12, i * 0.85 + 20, i] for i in range(256)], dtype=np.uint8)
-    return cv2.LUT(image, lut)
+    lut_r = np.array([i for i in range(256)], dtype=np.uint8)
+    lut_g = np.array([min(255, i * 0.95 + 12) for i in range(256)], dtype=np.uint8)
+    lut_b = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+    return apply_lut(image, lut_r, lut_g, lut_b)
 
 def apply_fujifilm_velvia(image):
-    lut = np.array([[i * 0.9 + 10, i * 0.85 + 20, i * 0.9 + 10] for i in range(256)], dtype=np.uint8)
-    return cv2.LUT(image, lut)
+    lut_r = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
+    lut_g = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+    lut_b = np.array([i for i in range(256)], dtype=np.uint8)
+    return apply_lut(image, lut_r, lut_g, lut_b)
 
 def create_warm_lut():
-    lut = np.zeros((256, 3), dtype=np.uint8)
-    for i in range(256):
-        lut[i] = [min(255, i + 20), i, max(0, i - 20)]
-    return lut
+    lut_r = np.array([min(255, i + 20) for i in range(256)], dtype=np.uint8)
+    lut_g = np.array([i for i in range(256)], dtype=np.uint8)
+    lut_b = np.array([max(0, i - 20) for i in range(256)], dtype=np.uint8)
+    return lut_r, lut_g, lut_b
 
-def apply_lut(image, lut):
+def apply_lut(image, lut_r, lut_g, lut_b):
     r, g, b = cv2.split(image)
-    r = cv2.LUT(r, lut[:, 0])
-    g = cv2.LUT(g, lut[:, 1])
-    b = cv2.LUT(b, lut[:, 2])
+    r = cv2.LUT(r, lut_r)
+    g = cv2.LUT(g, lut_g)
+    b = cv2.LUT(b, lut_b)
     return cv2.merge((r, g, b))
 
 def apply_custom_filter(image):
-    lut = create_warm_lut()
-    return apply_lut(image, lut)
+    lut_r, lut_g, lut_b = create_warm_lut()
+    return apply_lut(image, lut_r, lut_g, lut_b)
