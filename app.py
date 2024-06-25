@@ -1,123 +1,73 @@
+import streamlit as st
 import cv2
+from PIL import Image
 import numpy as np
 
-# Precomputed LUTs
-lut_kodak_portra = None
-lut_fujifilm_velvia = None
-lut_cinestill_800t = None
-lut_kodak_ektar_100 = None
-lut_fujifilm_provia_100f = None
+from filters import (
+    apply_grayscale,
+    apply_sepia,
+    apply_blur,
+    apply_edge_detection,
+    apply_kodak_portra,
+    apply_fujifilm_velvia,
+    apply_cinestill_800t,
+    apply_kodak_ektar_100,
+    apply_fujifilm_provia_100f,
+    apply_custom_filter,
+    apply_vintage_effect
+)
 
-def apply_grayscale(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def load_image(image_file):
+    img = Image.open(image_file)
+    return np.array(img)
 
-def apply_sepia(image):
-    kernel = np.array([[0.272, 0.534, 0.131],
-                       [0.349, 0.686, 0.168],
-                       [0.393, 0.769, 0.189]])
-    sepia_image = cv2.transform(image, kernel)
-    return sepia_image
+st.title("Image Filter App")
 
-def apply_blur(image, ksize=(15, 15)):
-    return cv2.GaussianBlur(image, ksize, 0)
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
 
-def apply_edge_detection(image):
-    return cv2.Canny(image, 100, 200)
+if uploaded_file is not None:
+    img = load_image(uploaded_file)
+    st.image(img, caption='Uploaded Image', use_column_width=True)
 
-def apply_kodak_portra(image):
-    global lut_kodak_portra
-    if lut_kodak_portra is None:
-        lut_r = np.array([i for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.95 + 12) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
-        lut_kodak_portra = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_kodak_portra)
+    filter_name = st.selectbox(
+        "Select a filter",
+        [
+            "Grayscale",
+            "Sepia",
+            "Blur",
+            "Edge Detection",
+            "Kodak Portra 400",
+            "Fujifilm Velvia 50",
+            "Cinestill 800T",
+            "Kodak Ektar 100",
+            "Fujifilm Provia 100F",
+            "Custom Warm Filter",
+            "Vintage Film Effect"
+        ]
+    )
 
-def apply_fujifilm_velvia(image):
-    global lut_fujifilm_velvia
-    if lut_fujifilm_velvia is None:
-        lut_r = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([i for i in range(256)], dtype=np.uint8)
-        lut_fujifilm_velvia = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_fujifilm_velvia)
+    if st.button("Apply Filter"):
+        if filter_name == "Grayscale":
+            filtered_img = apply_grayscale(img)
+        elif filter_name == "Sepia":
+            filtered_img = apply_sepia(img)
+        elif filter_name == "Blur":
+            filtered_img = apply_blur(img)
+        elif filter_name == "Edge Detection":
+            filtered_img = apply_edge_detection(img)
+        elif filter_name == "Kodak Portra 400":
+            filtered_img = apply_kodak_portra(img)
+        elif filter_name == "Fujifilm Velvia 50":
+            filtered_img = apply_fujifilm_velvia(img)
+        elif filter_name == "Cinestill 800T":
+            filtered_img = apply_cinestill_800t(img)
+        elif filter_name == "Kodak Ektar 100":
+            filtered_img = apply_kodak_ektar_100(img)
+        elif filter_name == "Fujifilm Provia 100F":
+            filtered_img = apply_fujifilm_provia_100f(img)
+        elif filter_name == "Custom Warm Filter":
+            filtered_img = apply_custom_filter(img)
+        elif filter_name == "Vintage Film Effect":
+            filtered_img = apply_vintage_effect(img)
 
-def apply_cinestill_800t(image):
-    global lut_cinestill_800t
-    if lut_cinestill_800t is None:
-        lut_r = np.array([min(255, i * 0.9 + 20) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.85 + 15) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 1.1 - 10)) for i in range(256)], dtype=np.uint8)
-        lut_cinestill_800t = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_cinestill_800t)
-
-def apply_kodak_ektar_100(image):
-    global lut_kodak_ektar_100
-    if lut_kodak_ektar_100 is None:
-        lut_r = np.array([min(255, i * 1.1) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.95) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 0.9 + 10)) for i in range(256)], dtype=np.uint8)
-        lut_kodak_ektar_100 = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_kodak_ektar_100)
-
-def apply_fujifilm_provia_100f(image):
-    global lut_fujifilm_provia_100f
-    if lut_fujifilm_provia_100f is None:
-        lut_r = np.array([min(255, i * 1.05) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.95 + 10) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 1.1 - 20)) for i in range(256)], dtype=np.uint8)
-        lut_fujifilm_provia_100f = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_fujifilm_provia_100f)
-
-def create_warm_lut():
-    lut_r = np.array([min(255, i + 20) for i in range(256)], dtype=np.uint8)
-    lut_g = np.array([i for i in range(256)], dtype=np.uint8)
-    lut_b = np.array([max(0, i - 20) for i in range(256)], dtype=np.uint8)
-    return lut_r, lut_g, lut_b
-
-def apply_lut(image, lut_r, lut_g, lut_b):
-    r, g, b = cv2.split(image)
-    r = cv2.LUT(r, lut_r)
-    g = cv2.LUT(g, lut_g)
-    b = cv2.LUT(b, lut_b)
-    return cv2.merge((r, g, b))
-
-def apply_custom_filter(image):
-    lut_r, lut_g, lut_b = create_warm_lut()
-    return apply_lut(image, lut_r, lut_g, lut_b)
-
-def apply_vintage_effect(image):
-    # Apply sepia tone
-    sepia_image = apply_sepia(image)
-
-    # Add a slight blur
-    blurred_image = apply_blur(sepia_image, ksize=(5, 5))
-
-    # Add noise
-    noise = np.random.normal(0, 10, blurred_image.shape)
-    noisy_image = blurred_image + noise
-    noisy_image = np.clip(noisy_image, 0, 255).astype(np.uint8)
-
-    # Add vignette effect (optional)
-    vignette_image = add_vignette(noisy_image, 0.5, 0.5)
-
-    return vignette_image
-
-def add_vignette(image, amount=0.5, midpoint=0.5):
-    h, w = image.shape[:2]
-    x, y = np.ogrid[:h, :w]
-
-    # Create a distance map
-    dist_map = np.sqrt((x - h / 2) ** 2 + (y - w / 2) ** 2)
-
-    # Calculate the vignette effect
-    max_dist = np.max(dist_map)
-    vignette = 1 - (1 - amount) * (dist_map / max_dist) ** midpoint
-
-    # Apply the vignette effect to each channel
-    vignette_image = np.dstack([image[:, :, i] * vignette for i in range(image.shape[2])])
-
-    # Normalize the image to [0, 1] range
-    vignette_image = vignette_image / 255.0  # Assuming image was clipped to [0, 255] before
-
-    return vignette_image
+        st.image(filtered_img, caption='Filtered Image', use_column_width=True)
