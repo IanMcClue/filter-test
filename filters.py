@@ -44,3 +44,36 @@ def apply_lut(image, lut_r, lut_g, lut_b):
 def apply_custom_filter(image):
     lut_r, lut_g, lut_b = create_warm_lut()
     return apply_lut(image, lut_r, lut_g, lut_b)
+
+def apply_vintage_effect(image):
+    # Apply sepia tone
+    sepia_image = apply_sepia(image)
+
+    # Add a slight blur
+    blurred_image = apply_blur(sepia_image, ksize=(5, 5))
+
+    # Add noise
+    noise = np.random.normal(0, 10, blurred_image.shape)
+    noisy_image = blurred_image + noise
+    noisy_image = cv2.clipData(noisy_image, 0, 255).astype(np.uint8)
+
+    # Add vignette effect (optional)
+    vignette_image = add_vignette(noisy_image, 0.5, 0.5)
+
+    return vignette_image
+
+def add_vignette(image, amount=0.5, midpoint=0.5):
+    h, w = image.shape[:2]
+    x, y = np.ogrid[:h, :w]
+
+    # Create a distance map
+    dist_map = np.sqrt((x - w / 2) ** 2 + (y - h / 2) ** 2)
+
+    # Calculate the vignette effect
+    max_dist = np.max(dist_map)
+    vignette = 1 - (1 - amount) * (dist_map / max_dist) ** midpoint
+
+    # Apply the vignette effect to each channel
+    vignette_image = np.dstack([image[:, :, i] * vignette for i in range(image.shape[2])])
+
+    return vignette_image
