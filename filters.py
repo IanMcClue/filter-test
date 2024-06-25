@@ -17,11 +17,11 @@ def apply_edge_detection(image):
     return cv2.Canny(image, 100, 200)
 
 def apply_kodak_portra(image):
-    lut = np.array([[i, i * 0.95 + 12, i * 0.85 + 20] for i in range(256)], dtype=np.uint8)
+    lut = np.array([[i * 0.95 + 12, i * 0.85 + 20, i] for i in range(256)], dtype=np.uint8)
     return cv2.LUT(image, lut)
 
 def apply_fujifilm_velvia(image):
-    lut = np.array([[i * 0.9 + 10, i * 0.85 + 20, i] for i in range(256)], dtype=np.uint8)
+    lut = np.array([[i * 0.9 + 10, i * 0.85 + 20, i * 0.9 + 10] for i in range(256)], dtype=np.uint8)
     return cv2.LUT(image, lut)
 
 def create_warm_lut():
