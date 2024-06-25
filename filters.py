@@ -77,6 +77,10 @@ def apply_fujifilm_provia_100f(image):
         lut_fujifilm_provia_100f = lut_r, lut_g, lut_b
     return apply_lut(image, *lut_fujifilm_provia_100f)
 
+def apply_custom_filter(image):
+    lut_r, lut_g, lut_b = create_warm_lut()
+    return apply_lut(image, lut_r, lut_g, lut_b)
+
 def add_grain(image, intensity=0.2):
     noise = np.random.normal(0, 255 * intensity, image.shape).astype(np.uint8)
     noisy_image = cv2.addWeighted(image, 1 - intensity, noise, intensity, 0)
