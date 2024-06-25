@@ -4,13 +4,14 @@ from PIL import Image
 import numpy as np
 
 from filters import (
-    apply_grayscale, 
-    apply_sepia, 
-    apply_blur, 
-    apply_edge_detection, 
-    apply_kodak_portra, 
-    apply_fujifilm_velvia, 
-    apply_custom_filter
+    apply_grayscale,
+    apply_sepia,
+    apply_blur,
+    apply_edge_detection,
+    apply_kodak_portra,
+    apply_fujifilm_velvia,
+    apply_custom_filter,
+    apply_vintage_effect  # Add the new filter function
 )
 
 def load_image(image_file):
@@ -27,7 +28,16 @@ if uploaded_file is not None:
 
     filter_name = st.selectbox(
         "Select a filter",
-        ["Grayscale", "Sepia", "Blur", "Edge Detection", "Kodak Portra 400", "Fujifilm Velvia 50", "Custom Warm Filter"]
+        [
+            "Grayscale",
+            "Sepia",
+            "Blur",
+            "Edge Detection",
+            "Kodak Portra 400",
+            "Fujifilm Velvia 50",
+            "Custom Warm Filter",
+            "Vintage Film Effect"  # Add the new filter option
+        ]
     )
 
     if st.button("Apply Filter"):
@@ -45,5 +55,7 @@ if uploaded_file is not None:
             filtered_img = apply_fujifilm_velvia(img)
         elif filter_name == "Custom Warm Filter":
             filtered_img = apply_custom_filter(img)
+        elif filter_name == "Vintage Film Effect":  # Apply the new filter
+            filtered_img = apply_vintage_effect(img)
 
         st.image(filtered_img, caption='Filtered Image', use_column_width=True)
