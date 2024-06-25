@@ -1,6 +1,82 @@
 import cv2
 import numpy as np
 
+# Precomputed LUTs
+lut_kodak_portra = None
+lut_fujifilm_velvia = None
+lut_cinestill_800t = None
+lut_kodak_ektar_100 = None
+lut_fujifilm_provia_100f = None
+
+def apply_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+def apply_sepia(image):
+    kernel = np.array([[0.272, 0.534, 0.131],
+                       [0.349, 0.686, 0.168],
+                       [0.393, 0.769, 0.189]])
+    sepia_image = cv2.transform(image, kernel)
+    sepia_image = np.clip(sepia_image, 0, 255)
+    return sepia_image.astype(np.uint8)
+
+def apply_blur(image, ksize=(15, 15)):
+    return cv2.GaussianBlur(image, ksize, 0)
+
+def apply_edge_detection(image):
+    return cv2.Canny(image, 100, 200)
+
+def apply_lut(image, lut_r, lut_g, lut_b):
+    r, g, b = cv2.split(image)
+    r = cv2.LUT(r, lut_r)
+    g = cv2.LUT(g, lut_g)
+    b = cv2.LUT(b, lut_b)
+    return cv2.merge((r, g, b))
+
+def apply_kodak_portra(image):
+    global lut_kodak_portra
+    if lut_kodak_portra is None:
+        lut_r = np.array([i for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.95 + 12) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+        lut_kodak_portra = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_kodak_portra)
+
+def apply_fujifilm_velvia(image):
+    global lut_fujifilm_velvia
+    if lut_fujifilm_velvia is None:
+        lut_r = np.array([min(255, i * 0.9 + 10) for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.85 + 20) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([i for i in range(256)], dtype=np.uint8)
+        lut_fujifilm_velvia = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_fujifilm_velvia)
+
+def apply_cinestill_800t(image):
+    global lut_cinestill_800t
+    if lut_cinestill_800t is None:
+        lut_r = np.array([min(255, i * 0.9 + 20) for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.85 + 15) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 1.1 - 10)) for i in range(256)], dtype=np.uint8)
+        lut_cinestill_800t = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_cinestill_800t)
+
+def apply_kodak_ektar_100(image):
+    global lut_kodak_ektar_100
+    if lut_kodak_ektar_100 is None:
+        lut_r = np.array([min(255, i * 1.1) for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.95) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 0.9 + 10)) for i in range(256)], dtype=np.uint8)
+        lut_kodak_ektar_100 = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_kodak_ektar_100)
+
+def apply_fujifilm_provia_100f(image):
+    global lut_fujifilm_provia_100f
+    if lut_fujifilm_provia_100f is None:
+        lut_r = np.array([min(255, i * 1.05) for i in range(256)], dtype=np.uint8)
+        lut_g = np.array([min(255, i * 0.95 + 10) for i in range(256)], dtype=np.uint8)
+        lut_b = np.array([max(0, min(255, i * 1.1 - 20)) for i in range(256)], dtype=np.uint8)
+        lut_fujifilm_provia_100f = lut_r, lut_g, lut_b
+    return apply_lut(image, *lut_fujifilm_provia_100f)
+
 def add_grain(image, intensity=0.2):
     noise = np.random.normal(0, 255 * intensity, image.shape).astype(np.uint8)
     noisy_image = cv2.addWeighted(image, 1 - intensity, noise, intensity, 0)
@@ -70,31 +146,3 @@ def apply_vintage_effect(image):
     vintage_image = add_vignette(light_leak_image, strength=0.5)
 
     return vintage_image
-
-# Example filter functions to add
-def apply_cinestill_800t(image):
-    global lut_cinestill_800t
-    if lut_cinestill_800t is None:
-        lut_r = np.array([min(255, i * 0.9 + 20) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.85 + 15) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 1.1 - 10)) for i in range(256)], dtype=np.uint8)
-        lut_cinestill_800t = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_cinestill_800t)
-
-def apply_kodak_ektar_100(image):
-    global lut_kodak_ektar_100
-    if lut_kodak_ektar_100 is None:
-        lut_r = np.array([min(255, i * 1.1) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.95) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 0.9 + 10)) for i in range(256)], dtype=np.uint8)
-        lut_kodak_ektar_100 = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_kodak_ektar_100)
-
-def apply_fujifilm_provia_100f(image):
-    global lut_fujifilm_provia_100f
-    if lut_fujifilm_provia_100f is None:
-        lut_r = np.array([min(255, i * 1.05) for i in range(256)], dtype=np.uint8)
-        lut_g = np.array([min(255, i * 0.95 + 10) for i in range(256)], dtype=np.uint8)
-        lut_b = np.array([max(0, min(255, i * 1.1 - 20)) for i in range(256)], dtype=np.uint8)
-        lut_fujifilm_provia_100f = lut_r, lut_g, lut_b
-    return apply_lut(image, *lut_fujifilm_provia_100f)
